@@ -36,8 +36,8 @@ class App extends Component {
       // example of interacting with the contract's methods.
       this.setState({ web3, accounts, contract: instance }, this.atStart);
       // Show Hodls.
-      this.account = accounts[4];
-      // this.setState({ account: accounts[4] })
+      this.account = accounts[0];
+      // this.setState({ account: accounts[0] })
       // console.log(this.account);
       await this.displayMyHodls();
       await this.displayAllHodls();
@@ -54,7 +54,10 @@ class App extends Component {
     // Set initial State value for page display
     // Hodls, Total locked / unlocked / Curr Address / Contract address...
     const { accounts, contract } = this.state;
-    this.account = accounts[4];
+    console.log(contract);
+    console.log(accounts);
+    this.account = accounts[0];
+    console.log(this.account);
 
     let _myHodls = await contract.methods.getHodlsByOwner(this.account).call();
 
@@ -75,7 +78,7 @@ class App extends Component {
   unlockHodl = async (_hodlId) => {
     try {
       const { accounts, contract } = this.state;
-      this.account = accounts[4];
+      this.account = accounts[0];
       await contract.methods.unlockHodl(_hodlId).send({ from: this.account, gas: 3000000 });
       // Add confirmation
       let _myHodls = await contract.methods.getHodlsByOwner(this.account).call();
@@ -124,7 +127,7 @@ class App extends Component {
     try {
       // Create Hodl when submit the form
       const { web3, accounts, contract } = this.state;
-      this.account = accounts[4];
+      this.account = accounts[0];
 
       const amountWei = web3.utils.toWei(formData.amount, 'ether');
 
@@ -166,7 +169,7 @@ class App extends Component {
   displayMyHodls = async () => {
     // This can be refractored better?
     const { accounts, contract } = this.state;
-    this.account = accounts[4];
+    this.account = accounts[0];
 
     let _hodls = []
 
@@ -183,7 +186,7 @@ class App extends Component {
   displayAllHodls = async () => {
     // This can be refractored better?
     const { accounts, contract } = this.state;
-    this.account = accounts[4];
+    this.account = accounts[0];
 
     let _hodls = []
 
@@ -232,7 +235,7 @@ class App extends Component {
           <h3>My Hodls</h3>
           {this.state.hodls.map((hodl, i) => (
           <Hodl
-            currAccount={this.state.accounts[4]}
+            currAccount={this.state.accounts[0]}
             owned={true}
             action={this.unlockHodl}
             backupAddress={this.backupAddress}
@@ -248,7 +251,7 @@ class App extends Component {
           <h3>All Hodls</h3>
           {this.state.otherhodls.map((hodl, i) => (
             <Hodl
-              currAccount={this.state.accounts[4]}
+              currAccount={this.state.accounts[0]}
               owned={false}
               action={this.unlockHodl}
               key={hodl.key}
@@ -258,7 +261,7 @@ class App extends Component {
           ))}
         </Row>
         <Row className="footer">
-          Contract Address: 0xbA9086D8262ED4E7C265A3AfDdFb903f16B1e761
+          Contract Address: 0xad8b92b47579fAA45B6F800aAA68eB9b1493995E
         </Row>
         </div>
       </div>

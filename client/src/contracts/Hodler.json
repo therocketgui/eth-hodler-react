@@ -15266,15 +15266,21 @@
     "version": "0.8.0+commit.c7dfd78e.Emscripten.clang"
   },
   "networks": {
-    "5777": {
+    "3": {
       "events": {},
       "links": {},
-      "address": "0x52d6fFDC504102CEf8922C516122a49550EAAf46",
-      "transactionHash": "0x0667f9ecdd4e14d2abfa1b187ffc19cd0c2c011b93ac995f99d6b82e45a23aaf"
+      "address": "0x5536755E713B048859c830f893B0B439Ae0D434a",
+      "transactionHash": "0xfa4ef47d71aebd379554169a31a5a3f682e710069b243d4b3eeb9b7e7b0c5424"
+    },
+    "4": {
+      "events": {},
+      "links": {},
+      "address": "0xad8b92b47579fAA45B6F800aAA68eB9b1493995E",
+      "transactionHash": "0x2ba8e68547ef0104fcbdad4ec5f0100d91dd1bee98730e1f9984a83a1ab9b9bf"
     }
   },
   "schemaVersion": "3.3.4",
-  "updatedAt": "2021-06-14T09:17:54.290Z",
+  "updatedAt": "2021-06-12T13:29:34.929Z",
   "networkType": "ethereum",
   "devdoc": {
     "author": "G. T. SA.",

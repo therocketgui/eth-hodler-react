@@ -20,6 +20,7 @@
     "@openzeppelin/cli": "^2.8.2",
     "@openzeppelin/contracts": "^4.1.0",
     "@openzeppelin/test-helpers": "^0.5.11",
-    "chai": "^4.3.4"
+    "chai": "^4.3.4",
+    "truffle-hdwallet-provider": "^1.0.17"
   }
 }

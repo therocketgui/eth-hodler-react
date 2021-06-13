@@ -26,8 +26,8 @@ class Hodl extends Component {
       otherOwner = null;
     }
     // console.log(otherOwner);
-    console.log(this.props.currAccount);
-    console.log(this.props.data.otherOwner);
+    // console.log(this.props.currAccount);
+    // console.log(this.props.data.otherOwner);
 
     if (this.props.currAccount == this.props.data.otherOwner || this.props.owned == true) {
       this.state.owned = true;
