@@ -1,11 +1,12 @@
 pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "./HodlToken.sol";
 // import "@chainlink/contracts/src/v0.6/interfaces/AggregatorV3Interface.sol";
 
 /// @title A Contract to Hodl (lock) funds until a defined time in the future
 /// @author G. T. SA.
 /// @notice This contract should be used to lock funds from yourself. There is no coming back after you lock your funds.
-contract Hodler {
+contract Hodler is HodlToken {
 
   // AggregatorV3Interface internal priceFeed;
 
@@ -16,6 +17,7 @@ contract Hodler {
   address owner;
   uint256 public totalLocked;
   uint256 public totalUnlocked;
+  uint _mintAmount;
 
   /// @dev Two events are emitted. One for Open and one for closed hodl
   /// A "Hodl" is triggered once you use lockHodl() and lock your funds
@@ -42,6 +44,17 @@ contract Hodler {
   mapping(address => uint) ownerTotalLocked;
   mapping(address => uint) ownerTotalUnlocked;
 
+  /// @dev Constructor should set Hodler Contract as sole Admin, Minter and Burner of Hodl Token
+  // constructor() public {
+  //   /// _grantRole - Set this.address has minter and burner
+  //   grantRole(keccak256("MINTER_ROLE"), address(this));
+  //   grantRole(keccak256("BURNER_ROLE"), address(this));
+  //   /// _setRoleAdmin - Change ERC20 Admin to this.address.
+  //   // _setRoleAdmin("DEFAULT_ADMIN_ROLE", address(this));
+  //   /// Renounce to the admin role
+  //   renounceRole("DEFAULT_ADMIN_ROLE", msg.sender);
+  // }
+
   /// @notice - Lock Function - Owner defines a time in days he wants he's funds to be locked from himself
   /// @dev Logs into a struct that'll be used to verify is Unlock is possible and if unlock has happened
   /// Time is set in days "timelocked*60*60*24"
@@ -55,6 +68,12 @@ contract Hodler {
     ownerTotalLocked[msg.sender] += msg.value;
 
     totalLocked += msg.value;
+
+    /// Mint new Hodl Tokens
+    /// Minimum Timelocked to get tokens = 365 days.
+    if (timelocked >= 365) {
+      mint(msg.sender, mintCalculator(msg.value, timelocked));
+    }
 
     emit NewHodl(hodls.length - 1, msg.sender, msg.value, uint64(block.timestamp + timelocked*60*60*24), uint64(block.timestamp));
   }
@@ -132,4 +151,10 @@ contract Hodler {
   //     ) = priceFeed.latestRoundData();
   //     return price;
   // }
+
+  /// @dev Timelocked should count more than the amount - the goal being to lock money longer
+  function mintCalculator(uint _amount, uint _timelocked) private returns(uint) {
+    _mintAmount = (((_amount / 10**14) * (_timelocked*_timelocked * 10**2)) / 10**9);
+    return _mintAmount;
+  }
 }
