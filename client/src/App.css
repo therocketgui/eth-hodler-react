@@ -33,6 +33,10 @@ button {
   border-radius: 3px;
 }
 
+.h-top-bar {
+  padding-top: 10px;
+}
+
 .modal-content {
   background-color: #1A1A1B;
   border: 1px solid #8c8c8d;

@@ -11,7 +11,7 @@ import { Row } from 'antd';
 import "./App.css";
 
 class App extends Component {
-  state = { storageValue: 0, web3: null, accounts: null, contract: null, hodls: [], otherhodls: [] };
+  state = { storageValue: 0, web3: null, accounts: null, contract: null, hodls: [], otherhodls: [], hodlTokenBalance: null};
   constructor(props) {
     super(props);
   };
@@ -36,8 +36,8 @@ class App extends Component {
       // example of interacting with the contract's methods.
       this.setState({ web3, accounts, contract: instance }, this.atStart);
       // Show Hodls.
-      this.account = accounts[0];
-      // this.setState({ account: accounts[0] })
+      this.account = accounts[6];
+      // this.setState({ account: accounts[6] })
       // console.log(this.account);
       await this.displayMyHodls();
       await this.displayAllHodls();
@@ -54,60 +54,47 @@ class App extends Component {
     // Set initial State value for page display
     // Hodls, Total locked / unlocked / Curr Address / Contract address...
     const { accounts, contract } = this.state;
-    console.log(contract);
-    console.log(accounts);
-    this.account = accounts[0];
+    this.account = accounts[6];
     console.log(this.account);
 
-    let _myHodls = await contract.methods.getHodlsByOwner(this.account).call();
+    this.refreshInfos();
+  };
 
-    // Init main infos
+  refreshInfos = async () => {
+    const { accounts, contract } = this.state;
+    this.account = accounts[6];
+
+    let _myHodls = await contract.methods.getHodlsByOwner(this.account).call();
+    let _hodlTokenBalance = await contract.methods.balanceOf(this.account).call();
+    // Refresh main infos
     let _totalLocked = await contract.methods.totalLocked().call();
     let _totalUnlocked = await contract.methods.totalUnlocked().call();
+
     let _myTotalLocked = await contract.methods.getTotalLockedByOwner(this.account).call();
     let _myTotalUnlocked = await contract.methods.getTotalUnlockedByOwner(this.account).call();
 
     this.setState({ hodlCount: _myHodls.length,
+                    hodlTokenBalance: parseInt(_hodlTokenBalance),
                     totalLocked: this.state.web3.utils.fromWei(_totalLocked, 'ether'),
                     totalUnlocked: this.state.web3.utils.fromWei(_totalUnlocked, 'ether'),
                     myTotalLocked: this.state.web3.utils.fromWei(_myTotalLocked, 'ether'),
                     myTotalUnlocked: this.state.web3.utils.fromWei(_myTotalUnlocked, 'ether')
                   });
-  };
+  }
+
+  refreshHodls = async () => {
+
+  }
 
   unlockHodl = async (_hodlId) => {
     try {
       const { accounts, contract } = this.state;
-      this.account = accounts[0];
+      this.account = accounts[6];
       await contract.methods.unlockHodl(_hodlId).send({ from: this.account, gas: 3000000 });
-      // Add confirmation
-      let _myHodls = await contract.methods.getHodlsByOwner(this.account).call();
-      console.log(_myHodls);
-      let _hodls = []
-      _myHodls.reverse();
-      for (var i = 0; i < _myHodls.length; i++) {
-        let _hodl = await contract.methods.hodls(_myHodls[i]).call();
-        _hodl.key = _myHodls[i];
-        _hodls.push(_hodl);
-      }
-
-      // Ugly as fuck but works.
-      this.setState({ hodls: []})
-
       // Refresh main infos
-      let _totalLocked = await contract.methods.totalLocked().call();
-      let _totalUnlocked = await contract.methods.totalUnlocked().call();
+      await this.refreshInfos();
+      await this.displayMyHodls();
 
-      let _myTotalLocked = await contract.methods.getTotalLockedByOwner(this.account).call();
-      let _myTotalUnlocked = await contract.methods.getTotalUnlockedByOwner(this.account).call();
-
-      this.setState({ hodlCount: _myHodls.length,
-                      hodls: _hodls,
-                      totalLocked: this.state.web3.utils.fromWei(_totalLocked, 'ether'),
-                      totalUnlocked: this.state.web3.utils.fromWei(_totalUnlocked, 'ether'),
-                      myTotalLocked: this.state.web3.utils.fromWei(_myTotalLocked, 'ether'),
-                      myTotalUnlocked: this.state.web3.utils.fromWei(_myTotalUnlocked, 'ether')
-                    });
     } catch (err) {
       alert(err);
     }
@@ -127,49 +114,26 @@ class App extends Component {
     try {
       // Create Hodl when submit the form
       const { web3, accounts, contract } = this.state;
-      this.account = accounts[0];
+      this.account = accounts[6];
 
       const amountWei = web3.utils.toWei(formData.amount, 'ether');
 
       const { lockHodl } = contract.methods;
 
       await lockHodl(formData.days).send({ from: this.account, value: amountWei, gas: 6721975, gasPrice: '30000000'});
+      await this.refreshInfos();
+      await this.displayMyHodls();
 
-      let _myHodls = await contract.methods.getHodlsByOwner(this.account).call();
-      let _hodls = []
-      _myHodls.reverse();
-      for (var i = 0; i < _myHodls.length; i++) {
-        let _hodl = await contract.methods.hodls(_myHodls[i]).call();
-        _hodl.key = _myHodls[i];
-        _hodls.push(_hodl);
-      }
-
-      // Ugly as fuck but works.
-      this.setState({ hodls: []})
-
-      // Refresh main infos
-      let _totalLocked = await contract.methods.totalLocked().call();
-      let _totalUnlocked = await contract.methods.totalUnlocked().call();
-
-      let _myTotalLocked = await contract.methods.getTotalLockedByOwner(this.account).call();
-      let _myTotalUnlocked = await contract.methods.getTotalUnlockedByOwner(this.account).call();
-
-      this.setState({ hodlCount: _myHodls.length,
-                      hodls: _hodls,
-                      totalLocked: this.state.web3.utils.fromWei(_totalLocked, 'ether'),
-                      totalUnlocked: this.state.web3.utils.fromWei(_totalUnlocked, 'ether'),
-                      myTotalLocked: this.state.web3.utils.fromWei(_myTotalLocked, 'ether'),
-                      myTotalUnlocked: this.state.web3.utils.fromWei(_myTotalUnlocked, 'ether')
-                    });
     } catch (err) {
       alert(err);
     }
   };
 
   displayMyHodls = async () => {
+    this.setState({ hodls: []})
     // This can be refractored better?
     const { accounts, contract } = this.state;
-    this.account = accounts[0];
+    this.account = accounts[6];
 
     let _hodls = []
 
@@ -186,7 +150,7 @@ class App extends Component {
   displayAllHodls = async () => {
     // This can be refractored better?
     const { accounts, contract } = this.state;
-    this.account = accounts[0];
+    this.account = accounts[6];
 
     let _hodls = []
 
@@ -215,6 +179,9 @@ class App extends Component {
     return (
       <div className="App">
         <div>
+        <Row className="h-top-bar">
+          HODL Token Balance: {this.state.hodlTokenBalance}
+        </Row>
         <Row className="h-header">
           <h1>Hodler</h1>
           <p>A Smart Contract to Hodl, because I can't by myself.</p>
@@ -235,7 +202,7 @@ class App extends Component {
           <h3>My Hodls</h3>
           {this.state.hodls.map((hodl, i) => (
           <Hodl
-            currAccount={this.state.accounts[0]}
+            currAccount={this.state.accounts[6]}
             owned={true}
             action={this.unlockHodl}
             backupAddress={this.backupAddress}
@@ -251,7 +218,7 @@ class App extends Component {
           <h3>All Hodls</h3>
           {this.state.otherhodls.map((hodl, i) => (
             <Hodl
-              currAccount={this.state.accounts[0]}
+              currAccount={this.state.accounts[6]}
               owned={false}
               action={this.unlockHodl}
               key={hodl.key}
