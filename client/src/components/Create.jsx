@@ -10,7 +10,7 @@ class Create extends Component {
 
   render() {
     return (
-      <Row>
+      <Row className="create h-container">
         <Row gutter={16} className="h-c-container h-c-box">
           <h3>Start a new Hodl</h3>
           <form onSubmit={this.onTrigger}>

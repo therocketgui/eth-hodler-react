@@ -1,14 +1,20 @@
 import React, { Component } from "react";
 import { Col } from "antd";
-import HodlContract from "./contracts/Hodler.json";
-import getWeb3 from "./getWeb3";
-import Create from './components/Create';
-import Hodl from './components/Hodl';
+import HodlContract from "./../contracts/Hodler.json";
+import DexContract from "./../contracts/Dex.json";
+import HodlTokenContract from "./../contracts/HodlToken.json";
+import getWeb3 from "./../getWeb3";
+import Create from './../components/Create';
+import Hodl from './../components/Hodl';
+import MenuMain from './../components/Menu';
+import Header from './../components/Header';
+import Footer from './../components/Footer';
 // import Hodls from './components/Hodls';
 // import CreateForm from './components/CreateForm';
 import { Row } from 'antd';
+import { Link } from 'react-router-dom';
 
-import "./App.css";
+import "./../assets/App.css";
 
 class App extends Component {
   state = { storageValue: 0, web3: null, accounts: null, contract: null, hodls: [], otherhodls: [], hodlTokenBalance: null};
@@ -20,24 +26,38 @@ class App extends Component {
     try {
       // Get network provider and web3 instance.
       const web3 = await getWeb3();
-
       // Use web3 to get the user's accounts.
       const accounts = await web3.eth.getAccounts();
 
       // Get the contract instance.
       const networkId = await web3.eth.net.getId();
+
       const deployedNetwork = HodlContract.networks[networkId];
       const instance = new web3.eth.Contract(
         HodlContract.abi,
         deployedNetwork && deployedNetwork.address,
       );
 
+      const _deployedNetwork = DexContract.networks[networkId];
+      const dex = new web3.eth.Contract(
+        DexContract.abi,
+        _deployedNetwork && _deployedNetwork.address,
+      );
+
+      // const _tokendeployedNetwork = HodlTokenContract.networks[networkId];
+      // const token = new web3.eth.Contract(
+      //   HodlTokenContract.abi,
+      //   _tokendeployedNetwork && _tokendeployedNetwork.address,
+      // );
+
+
+      console.log(instance);
       // Set web3, accounts, and contract to the state, and then proceed with an
       // example of interacting with the contract's methods.
-      this.setState({ web3, accounts, contract: instance }, this.atStart);
+      this.setState({ web3, accounts, contract: instance, dex: dex }, this.atStart);
       // Show Hodls.
-      this.account = accounts[6];
-      // this.setState({ account: accounts[6] })
+      this.account = accounts[0];
+      // this.setState({ account: accounts[0] })
       // console.log(this.account);
       await this.displayMyHodls();
       await this.displayAllHodls();
@@ -54,18 +74,20 @@ class App extends Component {
     // Set initial State value for page display
     // Hodls, Total locked / unlocked / Curr Address / Contract address...
     const { accounts, contract } = this.state;
-    this.account = accounts[6];
-    console.log(this.account);
+    this.account = accounts[0];
 
     this.refreshInfos();
   };
 
   refreshInfos = async () => {
-    const { accounts, contract } = this.state;
-    this.account = accounts[6];
-
+    const { accounts, contract, dex, token } = this.state;
+    this.account = accounts[0];
+    console.log(this.account);
     let _myHodls = await contract.methods.getHodlsByOwner(this.account).call();
+
+    // ISSUE THERE IS TWO DIFFERENT TOKEN CONTRACT
     let _hodlTokenBalance = await contract.methods.balanceOf(this.account).call();
+    let _hodlTokenTotalSupply = await contract.methods.totalSupply().call();
     // Refresh main infos
     let _totalLocked = await contract.methods.totalLocked().call();
     let _totalUnlocked = await contract.methods.totalUnlocked().call();
@@ -73,23 +95,25 @@ class App extends Component {
     let _myTotalLocked = await contract.methods.getTotalLockedByOwner(this.account).call();
     let _myTotalUnlocked = await contract.methods.getTotalUnlockedByOwner(this.account).call();
 
+    let dexEthBalance = await this.state.web3.eth.getBalance(dex.options.address); // Dex's Eth balance
+    let dexTokenBalance = await contract.methods.balanceOf(dex.options.address).call(); // Dex's Token balance
+
     this.setState({ hodlCount: _myHodls.length,
+                    hodlTokenTotalSupply: parseInt(_hodlTokenTotalSupply),
                     hodlTokenBalance: parseInt(_hodlTokenBalance),
                     totalLocked: this.state.web3.utils.fromWei(_totalLocked, 'ether'),
                     totalUnlocked: this.state.web3.utils.fromWei(_totalUnlocked, 'ether'),
                     myTotalLocked: this.state.web3.utils.fromWei(_myTotalLocked, 'ether'),
-                    myTotalUnlocked: this.state.web3.utils.fromWei(_myTotalUnlocked, 'ether')
+                    myTotalUnlocked: this.state.web3.utils.fromWei(_myTotalUnlocked, 'ether'),
+                    dexEthBalance: this.state.web3.utils.fromWei(dexEthBalance, 'ether'),
+                    dexTokenBalance: dexTokenBalance
                   });
-  }
-
-  refreshHodls = async () => {
-
   }
 
   unlockHodl = async (_hodlId) => {
     try {
       const { accounts, contract } = this.state;
-      this.account = accounts[6];
+      this.account = accounts[0];
       await contract.methods.unlockHodl(_hodlId).send({ from: this.account, gas: 3000000 });
       // Refresh main infos
       await this.refreshInfos();
@@ -105,6 +129,9 @@ class App extends Component {
       const { accounts, contract } = this.state;
       await contract.methods.modifyHodlBackup(_hodlId, _backupAddress).send({ from: this.account, gas: 300000 });
       // Add confirmation
+      await this.refreshInfos();
+      await this.displayMyHodls();
+      alert(`Backup Address ${_backupAddress} added successfully!`);
     } catch (err) {
       alert(err);
     }
@@ -114,7 +141,7 @@ class App extends Component {
     try {
       // Create Hodl when submit the form
       const { web3, accounts, contract } = this.state;
-      this.account = accounts[6];
+      this.account = accounts[0];
 
       const amountWei = web3.utils.toWei(formData.amount, 'ether');
 
@@ -130,10 +157,8 @@ class App extends Component {
   };
 
   displayMyHodls = async () => {
-    this.setState({ hodls: []})
-    // This can be refractored better?
     const { accounts, contract } = this.state;
-    this.account = accounts[6];
+    this.account = accounts[0];
 
     let _hodls = []
 
@@ -148,9 +173,8 @@ class App extends Component {
   }
 
   displayAllHodls = async () => {
-    // This can be refractored better?
     const { accounts, contract } = this.state;
-    this.account = accounts[6];
+    this.account = accounts[0];
 
     let _hodls = []
 
@@ -167,10 +191,6 @@ class App extends Component {
     this.setState({ otherhodls: _hodls});
   }
 
-  map = () => ({
-
-  });
-
   render() {
     if (!this.state.web3) {
       return <div>Loading Web3, accounts, and contract...</div>;
@@ -179,30 +199,26 @@ class App extends Component {
     return (
       <div className="App">
         <div>
-        <Row className="h-top-bar">
-          HODL Token Balance: {this.state.hodlTokenBalance}
-        </Row>
-        <Row className="h-header">
-          <h1>Hodler</h1>
-          <p>A Smart Contract to Hodl, because I can't by myself.</p>
-        </Row>
+        <MenuMain />
+        <Header
+          hodlTokenBalance={this.state.hodlTokenBalance}
+          hodlTokenTotalSupply={this.state.hodlTokenTotalSupply}
+          myTotalLocked={this.state.myTotalLocked}
+          myTotalUnlocked={this.state.myTotalUnlocked}
+          totalLocked={this.state.totalLocked}
+          totalUnlocked={this.state.totalUnlocked}
+          dexEthBalance={this.state.dexEthBalance}
+          dexTokenBalance={this.state.dexTokenBalance}
+        />
 
-        <Row className="h-i-container gutter={16}">
-          <Col span={6} className="gutter-row h-i-box h-i-sub-container">My Total locked: {this.state.myTotalLocked} Eth</Col>
-          <Col span={6} className="gutter-row h-i-box h-i-sub-container">My Total unlocked: {this.state.myTotalUnlocked} Eth</Col>
-          <Col span={6} className="gutter-row h-i-box h-i-sub-container">Total locked: {this.state.totalLocked} Eth</Col>
-          <Col span={6} className="gutter-row h-i-box h-i-sub-container">Total unlocked: {this.state.totalUnlocked} Eth</Col>
-        </Row>
+        <Create action={this.createHodl} ></Create>
 
-        <Row className="create h-container">
-          <Create action={this.createHodl} ></Create>
-        </Row>
         { this.state.hodlCount > 0 ?
         <Row className="hodl h-container">
           <h3>My Hodls</h3>
           {this.state.hodls.map((hodl, i) => (
           <Hodl
-            currAccount={this.state.accounts[6]}
+            currAccount={this.state.accounts[0]}
             owned={true}
             action={this.unlockHodl}
             backupAddress={this.backupAddress}
@@ -214,11 +230,12 @@ class App extends Component {
         </Row>
         : null
         }
+
         <Row className="hodl h-container">
           <h3>All Hodls</h3>
           {this.state.otherhodls.map((hodl, i) => (
             <Hodl
-              currAccount={this.state.accounts[6]}
+              currAccount={this.state.accounts[0]}
               owned={false}
               action={this.unlockHodl}
               key={hodl.key}
@@ -227,9 +244,8 @@ class App extends Component {
             />
           ))}
         </Row>
-        <Row className="footer">
-          Contract Address: 0xad8b92b47579fAA45B6F800aAA68eB9b1493995E
-        </Row>
+
+        <Footer contractAddress={this.state.contract._address} />
         </div>
       </div>
     );

@@ -1,11 +1,13 @@
 pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./HodlToken.sol";
 // import "@chainlink/contracts/src/v0.6/interfaces/AggregatorV3Interface.sol";
 
 /// @title A Contract to Hodl (lock) funds until a defined time in the future
 /// @author G. T. SA.
 /// @notice This contract should be used to lock funds from yourself. There is no coming back after you lock your funds.
+// contract Hodler is HodlToken {
 contract Hodler is HodlToken {
 
   // AggregatorV3Interface internal priceFeed;
@@ -44,6 +46,12 @@ contract Hodler is HodlToken {
   mapping(address => uint) ownerTotalLocked;
   mapping(address => uint) ownerTotalUnlocked;
 
+  /// @dev Constructor -> Initialise Token IERC20
+  /// Need to be able to mint, set a function to allow contract to mint?
+  // constructor(address token_addr) public {
+  //   token = IERC20(token_addr);
+  // }
+
   /// @dev Constructor should set Hodler Contract as sole Admin, Minter and Burner of Hodl Token
   // constructor() public {
   //   /// _grantRole - Set this.address has minter and burner
@@ -52,7 +60,7 @@ contract Hodler is HodlToken {
   //   /// _setRoleAdmin - Change ERC20 Admin to this.address.
   //   // _setRoleAdmin("DEFAULT_ADMIN_ROLE", address(this));
   //   /// Renounce to the admin role
-  //   renounceRole("DEFAULT_ADMIN_ROLE", msg.sender);
+  //
   // }
 
   /// @notice - Lock Function - Owner defines a time in days he wants he's funds to be locked from himself

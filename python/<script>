@@ -1,0 +1,138 @@
+<script>
+// Do not remove! Booking completed events.
+var acuityRe = /^https?:\/\/app.acuityscheduling.com/
+window.addEventListener("message", function(event) {
+    var data = event.data
+
+    if (!!event.origin.match(acuityRe) ||
+        !data.type ||
+        data.type != 'appointment_booked_new')
+        return
+
+    console.log(data.data)
+
+    var apptType = data.data.appointmentType;
+    var booking = apptTypeToAttributes(data.data.appointmentType);
+
+    var _url = window.location.pathname;
+
+    if (apptType == "") {
+      console.log("_url");
+      if (_url.includes("/products/pcr-green-list-travel-pack")) {
+        ga('set', 'dimension3', 'pcr green list travel pack');
+        ga('set', 'dimension4', 'unknown');
+        ga('set', 'dimension5', 'next day');
+
+        // Send data to GTM
+        window.dataLayer.push({
+         'event': 'appointment_booked_new',
+         'eventCategory': 'acuityCustom',
+         'eventAction': 'booking',
+         'eventLabel': 'submit',
+         'price': 269.00,
+         'bookingType': 'PCR Fit to Fly & Green List Travel Pack',
+         'apptType': 'pcr green list travel pack',
+         'apptLocation': 'unknown',
+         'apptTurnaround': 'next day',
+         'transactionId': data.data.id,
+         'transactionTotal': 269.00
+         });
+      } else if (_url == "/products/pcr-amber-list-travel-pack") {
+        ga('set', 'dimension3', 'pcr amber list travel pack');
+        ga('set', 'dimension4', 'unknown');
+        ga('set', 'dimension5', 'next day');
+
+        // Send data to GTM
+        window.dataLayer.push({
+         'event': 'appointment_booked_new',
+         'eventCategory': 'acuityCustom',
+         'eventAction': 'booking',
+         'eventLabel': 'submit',
+         'price': 369.00,
+         'bookingType': 'PCR Fit to Fly & Amber List Travel Pack',
+         'apptType': 'pcr amber list travel pack',
+         'apptLocation': 'unknown',
+         'apptTurnaround': 'next day',
+         'transactionId': data.data.id,
+         'transactionTotal': 369.00
+         });
+      } else if (_url == "/products/pcr-amber-list-travel-pack-plus") {
+        ga('set', 'dimension3', 'pcr amber list travel pack plus');
+        ga('set', 'dimension4', 'unknown');
+        ga('set', 'dimension5', 'next day');
+
+        // Send data to GTM
+        window.dataLayer.push({
+         'event': 'appointment_booked_new',
+         'eventCategory': 'acuityCustom',
+         'eventAction': 'booking',
+         'eventLabel': 'submit',
+         'price': 499.00,
+         'bookingType': 'PCR Fit to Fly & Amber List Travel Pack Plus',
+         'apptType': 'pcr amber list travel pack plus',
+         'apptLocation': 'unknown',
+         'apptTurnaround': 'next day',
+         'transactionId': data.data.id,
+         'transactionTotal': 499.00
+         });
+      } else {
+        ga('set', 'dimension3', 'pcr day 2 and 8');
+        ga('set', 'dimension4', 'unknown');
+        ga('set', 'dimension5', 'next day');
+
+        // Send data to GTM
+        window.dataLayer.push({
+         'event': 'appointment_booked_new',
+         'eventCategory': 'acuityCustom',
+         'eventAction': 'booking',
+         'eventLabel': 'submit',
+         'price': 250.00,
+         'bookingType': 'COVID-19 PCR Day 2 and Day 8 Tests',
+         'apptType': 'pcr day 2 and 8',
+         'apptLocation': 'unknown',
+         'apptTurnaround': 'next day',
+         'transactionId': data.data.id,
+         'transactionTotal': 250.00
+         });
+      }
+    } else if (apptType.includes("Day 2") || apptType.includes("Day 8")) {
+      console.log("Do not Send");
+    } else {
+      console.log("Send");
+      ga('set', 'dimension3', booking.type);
+      ga('set', 'dimension4', booking.location);
+      ga('set', 'dimension5', booking.turnaround);
+
+      // Send data to GTM
+      window.dataLayer.push({
+       'event': 'appointment_booked_new',
+       'eventCategory': 'acuityCustom',
+       'eventAction': 'booking',
+       'eventLabel': 'submit',
+       'price': data.data.price,
+       'bookingType': data.data.appointmentType,
+       'apptType': booking.type,
+       'apptLocation': booking.location,
+       'apptTurnaround': booking.turnaround,
+       'transactionId': data.data.id,
+       'transactionTotal': data.data.price
+       });
+    }
+
+
+    // Send identifier to Segment
+    analytics.identify(data.data.email, {
+      email: data.data.email
+  });
+
+    // Send data to Rewardful
+    rewardful('convert', { email: data.data.email });
+
+    // Send data to Wicked Report
+    let wrImg = document.createElement('img');
+  wrImg.src = 'https://track.wickedreports.com/pixel.php?WickedClientID=3550&WickedEmail='+ data.data.email +'&WickedURL=' + parent.location.href;
+  console.log(wrImg)
+    let wrBody = document.getElementsByTagName('body')[0];
+  wrBody.appendChild(wrImg);
+}, false)
+</script>

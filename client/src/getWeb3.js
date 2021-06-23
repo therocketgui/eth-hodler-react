@@ -1,9 +1,9 @@
 import Web3 from "web3";
-
+// fix router: https://stackoverflow.com/questions/53366103/await-keeps-on-waiting-react-react-router
 const getWeb3 = () =>
-  new Promise((resolve, reject) => {
+  new Promise( async (resolve, reject) => {
     // Wait for loading completion to avoid race conditions with web3 injection timing.
-    window.addEventListener("load", async () => {
+    // window.addEventListener("load", async () => {
       // Modern dapp browsers...
       if (window.ethereum) {
         const web3 = new Web3(window.ethereum);
@@ -33,6 +33,6 @@ const getWeb3 = () =>
         resolve(web3);
       }
     });
-  });
+  // });
 
 export default getWeb3;

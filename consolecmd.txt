@@ -1,0 +1,47 @@
+----
+
+Init
+
+-
+
+const dex = await Dex.deployed()
+// const hodlToken = await HodlToken.deployed()
+const hodl = await Hodler.deployed()
+
+const account = accounts[0]
+await hodl.publicMint(account, 1000)
+hodl.approve(dex.address, 1000)
+
+dex.init(1000, {value: web3.utils.toWei('0.01', 'ether')})
+
+-
+
+const hodlTokenBalance = await hodl.balanceOf(dex.address)
+const ethBalance = await dex.totalLiquidity.call()
+
+await parseFloat(web3.utils.fromWei(ethBalance))
+
+const price = await dex.price(100, hodlTokenBalance, ethBalance)
+
+
+
+
+-
+
+await hodlToken.balanceOf(dex.address)
+
+----
+
+Trading:
+
+-
+_myLiquidity = await dex.liquidity(account)
+await parseFloat(_myLiquidity)
+
+_deposit = await dex.deposit({from: accounts[2], value: web3.utils.toWei('2', 'ether')})
+_withdraw = await dex.withdraw({value: web3.utils.toWer('0.25', 'ether')})
+
+---
+
+_buy = await dex.ethToHodlToken({from: accounts[2], value: web3.utils.toWei(0.1)})
+_sell = await dex.hodlTokenToEth(100, {from: account[2]})
