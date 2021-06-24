@@ -13,6 +13,9 @@ class Header extends Component {
         <Row className="h-top-bar">
           Pool Token Balance: {this.props.dexTokenBalance} / Pool Eth Balance: {this.props.dexEthBalance}
         </Row>
+        <Row className="h-top-bar">
+          Hodl Token Price: {this.props.dexEthBalance/this.props.dexTokenBalance} Eth
+        </Row>
         <Row className="h-header">
           <h1>Hodler v0.1</h1>
           <p>A Smart Contract to Hodl, because I can't by myself.<br /> Get Hodl Tokens every time you lock Eth longer than 365 days.</p>

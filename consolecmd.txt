@@ -45,3 +45,7 @@ _withdraw = await dex.withdraw({value: web3.utils.toWer('0.25', 'ether')})
 
 _buy = await dex.ethToHodlToken({from: accounts[2], value: web3.utils.toWei(0.1)})
 _sell = await dex.hodlTokenToEth(100, {from: account[2]})
+
+
+
+ethAmount, tokenAmount = await dex.withdrawCalc(web3.utils.toWei('0.04', 'ether'), {from: accounts[3]})

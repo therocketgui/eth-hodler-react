@@ -8,6 +8,8 @@ import Hodl from './../components/Hodl';
 import MenuMain from './../components/Menu';
 import Header from './../components/Header';
 import Exchange from './../components/Exchange';
+import Deposit from './../components/Deposit';
+import Withdraw from './../components/Withdraw';
 
 // import Hodls from './components/Hodls';
 // import CreateForm from './components/CreateForm';
@@ -88,6 +90,8 @@ class Dex extends Component {
     let dexEthBalance = await this.state.web3.eth.getBalance(dex.options.address); // Dex's Eth balance
     let dexTokenBalance = await contract.methods.balanceOf(dex.options.address).call(); // Dex's Token balance
 
+    let myLiquidity = await dex.methods.liquidity(this.account).call();
+
     this.setState({ hodlCount: _myHodls.length,
                     hodlTokenTotalSupply: parseInt(_hodlTokenTotalSupply),
                     hodlTokenBalance: parseInt(_hodlTokenBalance),
@@ -96,7 +100,8 @@ class Dex extends Component {
                     myTotalLocked: this.state.web3.utils.fromWei(_myTotalLocked, 'ether'),
                     myTotalUnlocked: this.state.web3.utils.fromWei(_myTotalUnlocked, 'ether'),
                     dexEthBalance: this.state.web3.utils.fromWei(dexEthBalance, 'ether'),
-                    dexTokenBalance: dexTokenBalance
+                    dexTokenBalance: dexTokenBalance,
+                    myLiquidity: this.state.web3.utils.fromWei(myLiquidity, 'ether')
                   });
   }
 
@@ -114,8 +119,53 @@ class Dex extends Component {
     }
   };
 
-  getPrice = async () => {
+  tokenExchange = async (formData) => {
+    try {
+      const { web3, accounts, contract, dex } = this.state;
+      this.account = accounts[0];
 
+      // const amountWei = web3.utils.toWei(formData.amount, 'ether');
+      // console.log(formData.amount);
+      // console.log(dex.options.address);
+
+      await contract.methods.approve(dex.options.address, formData.amount).send({from: this.account});
+      await dex.methods.hodlTokenToEth(formData.amount).send({from: this.account});
+      this.refreshInfos();
+    } catch (err) {
+      alert(err);
+    }
+  };
+
+  deposit = async (formData) => {
+    try {
+      const { web3, accounts, contract, dex } = this.state;
+      this.account = accounts[0];
+
+      const tokens = Math.round(formData.tokens).toString();
+      const amountWei = web3.utils.toWei(formData.amount, 'ether');
+
+      await contract.methods.approve(dex.options.address, tokens).send({from: this.account});
+      await dex.methods.deposit().send({from: this.account, value: amountWei, gas: 6721975, gasPrice: '30000000'});
+
+      this.refreshInfos();
+    } catch (err) {
+      alert(err);
+    }
+  }
+
+  withdraw = async (formData) => {
+    try {
+      const { web3, accounts, contract, dex } = this.state;
+      this.account = accounts[0];
+
+      const amountWei = web3.utils.toWei(formData.amount, 'ether');
+      console.log(amountWei);
+      await dex.methods.withdraw(amountWei).send({from: this.account});
+
+      this.refreshInfos();
+    } catch (err) {
+      alert(err);
+    }
   }
 
   render() {
@@ -144,6 +194,31 @@ class Dex extends Component {
             dexEthBalance={this.state.dexEthBalance}
             dexTokenBalance={this.state.dexTokenBalance}
             web3={this.state.web3}
+            type={'ethToToken'}
+          />
+          <Exchange
+            action={this.tokenExchange}
+            dex={this.state.dex}
+            dexEthBalance={this.state.dexEthBalance}
+            dexTokenBalance={this.state.dexTokenBalance}
+            web3={this.state.web3}
+            type={'tokenToEth'}
+          />
+          <Deposit
+            action={this.deposit}
+            dex={this.state.dex}
+            web3={this.state.web3}
+            dexEthBalance={this.state.dexEthBalance}
+            dexTokenBalance={this.state.dexTokenBalance}
+            myLiquidity={this.state.myLiquidity}
+          />
+          <Withdraw
+            action={this.withdraw}
+            dex={this.state.dex}
+            web3={this.state.web3}
+            dexEthBalance={this.state.dexEthBalance}
+            dexTokenBalance={this.state.dexTokenBalance}
+            myLiquidity={this.state.myLiquidity}
           />
         </Row>
       </div>
